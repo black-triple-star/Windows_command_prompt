@@ -1,0 +1,12 @@
+~$*
+*.lnk
+*.pyc
+__pycache__
+$HISTORY
+FP_Kakeibo\AutoBackUp
+FP_Kakeibo\BackUp
+*.tmp.drivedownload*
+AutoBackUp
+BackUp
+.svn
+
