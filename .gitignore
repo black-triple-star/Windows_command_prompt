@@ -1,6 +1,7 @@
 ~$*
 *.lnk
 *.pyc
+*.ldb
 __pycache__
 $HISTORY
 FP_Kakeibo\AutoBackUp
