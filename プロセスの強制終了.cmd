@@ -28,10 +28,10 @@ tasklist /FI "IMAGENAME eq %EXE_NM%" | findstr /i "%PROCESS_NM%"
 if errorlevel 1 (
 	rem 起動していない
 ) else (
-	rem 起動済みの場合、一度終了する。
+	rem 起動済みの場合、終了する。
 	taskkill /f /im "%EXE_NM%"
 )
 
-rem 起動する場合、ここを有効にする
+rem 再起動する場合、ここを有効にする
 rem start /b %ComSpec% /c start /high %~dp0%EXE_NM%
 
