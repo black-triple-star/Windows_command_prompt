@@ -244,6 +244,14 @@ if exist "%TEMP%\" (
 	)
 )
 
+rem 一行で書くとこうなる
+set OBJECT=%TEMP_FILE%
+set OBJECT=%TEMP%
+set OBJECT=aaaaa
+if exist "%OBJECT%\" ( set OBJ_TYPE=ディレクトリ ) else ( if exist "%OBJECT%" ( set OBJ_TYPE=ファイル ) else ( set OBJ_TYPE=そもそも存在しない。))
+echo %OBJ_TYPE%
+
+
 rem ********************************************************************************
 rem for と引数で使える修飾子
 rem 修飾子付き変数 説明 
