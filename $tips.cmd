@@ -203,6 +203,22 @@ set BASHO=%~dp0
 echo %BASHO%
 pause
 
+rem ********************************************************************************
+
+set TEMP_FILE=%temp%\test.txt
+echo test>"%TEMP_FILE%"
+
+set TEMP_OBJ=%temp%
+set TEMP_OBJ=%TEMP_FILE%
+dir "%TEMP_OBJ%" 2>nul | %systemroot%\SysWOW64\find /i "<DIR>          .."  >NUL
+rem errorlevelで判別しているため、ここに新たなコマンドを入れてはいけない
+if not errorlevel 1 (
+	echo ディレクトリ
+) else (
+	echo ファイル
+)
+
+
 rem ディレクトリとファイルの判別。最後に\を付けてexist判定をすればいい。
 set TEMP_FILE=%temp%\test.txt
 echo test>"%TEMP_FILE%"
