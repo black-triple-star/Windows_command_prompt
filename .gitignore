@@ -3,6 +3,7 @@
 *.pyc
 *.ldb
 __pycache__
+.~lock.*
 $HISTORY
 FP_Kakeibo\AutoBackUp
 FP_Kakeibo\BackUp
