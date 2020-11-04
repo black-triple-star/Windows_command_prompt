@@ -5,6 +5,7 @@ chcp 65001
 chcp 932
 
 rem 「タイトル バーに完全なパスを表示する」の切り替え
+rem レジストリの編集結果は、GUIでの操作結果（エクスプローラーの「フォルダー オプション」の捜査結果）と同じだが、フルパスが表示されない
 
 rem "https://automationlabo.com/wat/?p=1954"
 rem reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" /v "FullPath" /t REG_DWORD /d "1" /f
