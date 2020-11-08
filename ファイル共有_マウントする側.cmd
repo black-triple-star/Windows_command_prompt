@@ -54,6 +54,7 @@ rem	set SERVER_NM=\\192.168.99.3
 ) else (
 	rem ƒ}ƒEƒ“ƒg‚ğ‰ğœ‚·‚é
 	set DRIVE_LETTER=V:
+	net use !DRIVE_LETTER! /delete
 )
 
 explorer shell:::{20D04FE0-3AEA-1069-A2D8-08002B30309D}
