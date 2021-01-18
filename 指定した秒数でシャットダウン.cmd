@@ -19,3 +19,7 @@ echo %HOURS% ŽžŠÔ %MINUTES% •ª %SECOND% •bŒã
 echo %SHUTDOWN_SECONDS%
 
 shutdown.exe -s -f -t %SHUTDOWN_SECONDS% -c "Windows will  shutdown in %HOURS% ŽžŠÔ %MINUTES% •ª %SECOND% •b"
+
+rem ƒLƒƒƒ“ƒZƒ‹
+rem shutdown.exe -a
+
