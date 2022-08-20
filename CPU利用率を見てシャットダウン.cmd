@@ -63,7 +63,11 @@ timeout /t 60 /nobreak
 rem 一分待って閾値以下の場合、シャットダウンする、閾値以上になったら、戻る
 if !CPU! LSS %THRESHOLD% (
 	echo シャットダウン処理
-	shutdown.exe -s -f -t 0 -c "Windows will now shutdown soon"
+	rem shutdown.exe -s -f -t 0 -c "Windows will now shutdown soon"
+	rem シャットダウンをキャンセルできるように30秒の猶予を設ける
+	shutdown.exe -s -f -t 30 -c  "Windows will shutdown in 30 seconds"
+	rem シャットダウンをキャンセルするにはこれを実行
+	rem shutdown.exe -a
 ) else (
 	echo シャットダウン処理を取り消し
 	goto :CALC_CPU_USAGE
