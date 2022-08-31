@@ -29,7 +29,9 @@ tasklist /FI "IMAGENAME eq %PROCESS_NM%" | findstr /i "%PROCESS_NM%"
 if errorlevel 1 (
 	echo %PROCESS_NM%  が起動していない
 	rem シャットダウン
-	shutdown.exe -s -f -t 0 -c "Windows will now shutdown soon"
+	shutdown.exe -s -f -t 60 -c "Windows will now shutdown in 60 seconds"
+	rem キャンセルするには、以下を実行する。
+	rem shutdown.exe -a
 ) else (
 	echo %PROCESS_NM%  が起動している
 )
