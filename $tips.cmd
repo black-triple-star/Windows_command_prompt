@@ -10,7 +10,25 @@ cls
 title "%~0"
 
 rem ********************************************************************************
+
+rem ＆ を使って、左のコマンドの実行に成功したときに右のコマンドを実行する
+rem ｜を使って、最初のコマンドが失敗したときのみ、2つ目のコマンドを実行したい場合は、"||"で複数のコマンドを繋げます。
+rem https://www.pg-fl.jp/program/dos/doscmd/str_l_and.htm
+rem http://excmd.seesaa.net/article/156181146.html
+rem http://tugi.hatenablog.com/entry/2014/09/18/204239
+rem https://akamist.com/blog/archives/1327
+C:\Windows\System32\cmd.exe /k set PATH=C:\Program Files (x86)\VMware\VMware Player\;%PATH% && vctl.exe -h
+
+set PATH=C:\Program Files (x86)\VMware\VMware Player\;%PATH% && echo aa
+
+rem ネストも可能らしい
+rem (command1 & command2) || command3
+
+rem ********************************************************************************
 rem 改行だけを出力したい場合、echooff してからecho.　とする。
+rem https://jj-blues.com/cms/wantto-echonewline/
+rem https://www.k-tanaka.net/windows/cmd/echo.html
+rem https://www.projectgroup.info/tips/Windows/cmd_0003.html
 echo.
 
 echo on
@@ -22,6 +40,14 @@ rem %windir%\explorer.exe ".\bin\nomacs.exe"
 rem ********************************************************************************
 rem https://news.mynavi.jp/article/win10tips-459/
 pushd を使えば、UNCのドライブレターの割り当てをやってくれるが、pushdだとユーザー名とパスワードを指定できないっぽい
+
+rem ********************************************************************************
+rem 管理者によるコマンドプロンプトでも消去・所有者変更・権限変更ができない場合の消し方
+rem https://denor.jp/%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E3%82%92%E3%81%A9%E3%81%86%E3%81%97%E3%81%A6%E3%82%82%E5%89%8A%E9%99%A4%E3%81%A7%E3%81%8D%E3%81%AA%E3%81%84%E5%A0%B4%E5%90%88%E3%81%AE%E5%AF%BE%E5%BF%9C%E4%BE%8B
+rem DOSデバイスパス表記で消す
+rem rd "\\?\C:\<削除するフォルダのパスを途中まで入力後TABで補完＞”
+rem 例
+rem rd /s  /q  \\?\D:\MEGA\Rubbish\2021-12-03\
 
 rem ********************************************************************************
 rem カレントドライブとカレントディレクトリを変数に格納する方法
@@ -75,7 +101,8 @@ rem パスの最後にある\マークを除去する例。（パスの最後に\マークがあると動作しない
 set HOGE=c:\temp\
 echo %HOGE%
 echo %HOGE:~-1%
-if %HOGE:~-1%==\ (set HOGE=%HOGE:~0,-1%)
+if "%HOGE:~-1%"=="\" (set HOGE=%HOGE:~0,-1%)
+rem if %HOGE:~-1%==\ (set HOGE=%HOGE:~0,-1%)
 echo %HOGE%
 
 rem パスの最後にある\マークを除去する例。（パスの最後に\マークがあると動作しないコマンドがある）
@@ -265,6 +292,91 @@ rem %~sI	パスを、短い名前に展開します。
 rem %~aI	%I を、ファイルのファイル属性に展開します。 
 rem %~tI	%I を、ファイルの日付と時刻に展開します。 
 rem %~zI	%I を、ファイルのサイズに展開します。 
+
+rem ********************************************************************************
+rem ファイル名から拡張子などを取り出す
+rem https://orangeclover.hatenablog.com/entry/20101004/1286120668
+
+rem forループの中で変数の中身を取り出すわけでないので、これは不要
+rem setlocal enabledelayedexpansion
+
+set INPUT_FILE=D:\GitHub\tools\tips.bas
+
+@echo off
+cls
+
+echo %INPUT_FILE%
+for /f %%V in ("%INPUT_FILE%") do (
+	echo %%V
+	echo %%~fV
+	echo %%~dV
+	echo %%~pV
+	echo %%~dpnV
+	echo %%~nV
+	echo %%~nxV
+	echo %%~xV
+	echo %%~sV
+	echo %%~aV
+	rem ファイル更新日付とバイト数
+	echo %%~tV
+	echo %%~zV
+	set FILE_NAME=%%~dpnV
+	set FILE_EXT=%%~xV
+)
+echo ####################
+echo %FILE_NAME%
+echo %FILE_EXT%
+
+
+rem ファイルのフルパスからディレクトリとファイル名を分離する
+set BROWSER=C:\bin64\GoogleChromePortable\App\Chrome-bin\chrome.exe
+rem %%i と ) の間にスペースを入れてはいけない。スペースも変数に格納されてしまう
+for /f "tokens=* usebackq" %%i in (`echo %BROWSER%`) do (set FILE_DIR=%%~dpi)
+rem パスの最後にある\マークを除去する例。（パスの最後に\マークがあると動作しないコマンドがある）
+if "%FILE_DIR:~-1%"=="\" (set FILE_DIR=%FILE_DIR:~0,-1%)
+rem if %FILE_DIR:~-1%==\ (set FILE_DIR=%FILE_DIR:~0,-1%)
+echo %FILE_DIR%
+
+for /f "tokens=* usebackq" %%i in (`echo %BROWSER%`) do (set FILE_NM=%%~nxi)
+echo %FILE_NM%
+
+rem 1行で書くとこうなる
+rem && の前にスペースを入れてはいけない。スペースも変数に格納されてしまう
+for /f "tokens=* usebackq" %%i in (`echo %BROWSER%`) do (set FILE_DIR=%%~dpi&& set FILE_NM=%%~nxi)
+rem パスの最後にある\マークを除去する例。（パスの最後に\マークがあると動作しないコマンドがある）
+if "%FILE_DIR:~-1%"=="\" (set FILE_DIR=%FILE_DIR:~0,-1%)
+echo %FILE_DIR%
+echo %FILE_NM%
+pause
+
+
+
+rem 1行で書くとこうなる
+rem && の前にスペースを入れてはいけない。スペースも変数に格納されてしまう
+set INPUT_FILE=D:\GitHub\tools\tips.bas
+for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER=%%~dV&&  set DRIVE_AND_DIR=%%~dpV&&  set FULL_PATH=%%~dpnxV&&  set FILE_NAME=%%~nxV&& set FILE_EXT=%%~xV)
+for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER=%~dV&&  set DRIVE_AND_DIR=%~dpV&&  set FULL_PATH=%~dpnxV&&  set FILE_NAME=%~nxV&& set FILE_EXT=%~xV)
+echo ####################
+echo "%FULL_PATH%"
+echo "%DRIVE_LETTER%"
+echo "%DRIVE_AND_DIR%"
+echo "%FILE_NAME%"
+echo "%FILE_EXT%"
+
+rem 変数名を二重引用符で囲めばいいかと思うがダメ。 二重引用符も && 直前のスペースも変数にセットされる。
+set INPUT_FILE=D:\GitHub\tools\tips.bas
+for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER="%%~dV"  &&  set DRIVE_AND_DIR="%%~dpV"  &&  set FULL_PATH="%%~dpnxV"  &&  set FILE_NAME="%%~dpnV"  && set FILE_EXT="%%~xV")
+for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER="%~dV"  &&  set DRIVE_AND_DIR="%~dpV"  &&  set FULL_PATH="%~dpnxV"  &&  set FILE_NAME="%~dpnV"  && set FILE_EXT="%~xV")
+echo ####################
+echo [%FULL_PATH%]
+echo [%DRIVE_LETTER%]
+echo [%DRIVE_AND_DIR%]
+echo [%FILE_NAME%]
+echo [%FILE_EXT%]
+
+
+pause
+
 
 rem ################################################################################################
 rem ファイルとディレクトリの判別
@@ -484,6 +596,7 @@ rem ログインしているユーザー名をセット
 for /f "tokens=* usebackq" %%i in (`whoami`) do (set USER_NAME=%%i)
 rem %%i と ) の間にスペースを入れてはいけない。スペースも変数に格納されてしまう
 echo %USER_NAME%
+
 
 
 rem ********************************************************************************
