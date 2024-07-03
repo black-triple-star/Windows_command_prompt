@@ -1,17 +1,30 @@
 rem #####################################
 rem 改行コードがCR+LFでないと動作しません
 rem #####################################
-chcp 65001
-chcp 932
+rem chcp 1200 & rem "UTF-16"
+chcp 65001 & rem "UTF-8"
+chcp 932 & rem "CP932"
+rem chcp 65001 すると、rem や echo が文字化けすることがある。この場合、二重引用符で囲めばよい。
 
 @echo off
 cls
 
+cd /d "%~dp0"
+set HERE=%~dp0
+rem echo %HERE:~-1%
+if "%HERE:~-1%"=="\" (set HERE=%HERE:~0,-1%)
+rem echo %HERE%
+echo %CD%
 title "%~0"
+rem setlocal ENABLEDELAYEDEXPANSION
+
+rem set PATH="%CD%";%PATH%
+rem echo %PATH%
 
 rem ********************************************************************************
 
-rem ＆ を使って、左のコマンドの実行に成功したときに右のコマンドを実行する
+rem ＆＆ を使って、左のコマンドの実行に成功したときに右のコマンドを実行する。＆が一つだとエラーでも次のコマンドが実行される。
+
 rem ｜を使って、最初のコマンドが失敗したときのみ、2つ目のコマンドを実行したい場合は、"||"で複数のコマンドを繋げます。
 rem https://www.pg-fl.jp/program/dos/doscmd/str_l_and.htm
 rem http://excmd.seesaa.net/article/156181146.html
@@ -21,8 +34,28 @@ C:\Windows\System32\cmd.exe /k set PATH=C:\Program Files (x86)\VMware\VMware Pla
 
 set PATH=C:\Program Files (x86)\VMware\VMware Player\;%PATH% && echo aa
 
+
+shutdown -a & echo シャットダウンがスケジュールされてなくても、echoできる。
+shutdown -a && echo シャットダウンがスケジュールされてると、echoできる。（スケジュールされてないと、echoできない）
+shutdown -a || echo シャットダウンがスケジュールされてないと、echoされる
+shutdown -a | echo シャットダウンがスケジュールされてなくても、echoできる
+
+shutdown.exe -s -f -t 7200
+
 rem ネストも可能らしい
 rem (command1 & command2) || command3
+
+rem ********************************************************************************
+rem コマンドが正常終了したかの判定
+rem 存在しないディレクトリをdirするとエラーとなる
+dir C:\dummy
+dir %userprofile%
+IF ERRORLEVEL 1 (
+	echo エラー
+) ELSE (
+	echo 正常実行
+)
+
 
 rem ********************************************************************************
 rem 改行だけを出力したい場合、echooff してからecho.　とする。
@@ -32,6 +65,20 @@ rem https://www.projectgroup.info/tips/Windows/cmd_0003.html
 echo.
 
 echo on
+
+rem ********************************************************************************
+rem 【バッチファイル】文字列を改行なしで表示  https://qiita.com/koryuohproject/items/f53ace4bcd3bf0b261be
+SET /P X=文字列<NUL
+@rem ファイルに上書き
+SET /P X=文字列<NUL >ファイル
+@rem ファイルに追記
+SET /P X=文字列<NUL >>ファイル
+
+rem 改行ありでコピー
+echo 改行ありでコピー|clip
+
+rem 改行なしでコピー、ただし、スペースが入る
+SET /P X=改行なしでコピー<NUL|clip
 
 rem ********************************************************************************
 rem Windows ショートカット（.lnkファイル）で、相対パスを指定する方法。以下のように、explorer.exe の引数にする
@@ -196,12 +243,20 @@ if /i "%PROCESSOR_ARCHITECTURE%" == "x86" (
 
 pause
 
+set TEMP_FILE=%~dpn0.txt
+rem ファイルを読み込みながら、echo する。その際、%TEMP_FILE% を二重引用符で囲ってはいけない。つまり、ファイル名にスペースを入れてはいけない。
+for /F "eol=# tokens=1,2 delims=	" %%I in ( %TEMP_FILE% ) do  (
+	echo "%%~I"	"%%~J"
+)
+
+
+
 rem ********************************************************************************
 
 rem 特定のプロセスが起動していない場合、起動する。（Windows XP のみ）
 set PROCESS_NM=notepad.exe
 tasklist | %systemroot%\SysWOW64\find /i "%PROCESS_NM%">NUL
-if errorlevel d1 (
+if errorlevel 1 (
 	start /b %PROCESS_NM%
 )
 
@@ -225,9 +280,9 @@ pause
 
 rem タスクスケジューラーから起動すると、カレントディレクトリが%system%になるので、
 rem 起動するcmdファイルのパスからカレントディレクトリを得る。
-rem for /d %%V in (%0) do  (set BASHO=%%~dpV)
-set BASHO=%~dp0
-echo %BASHO%
+rem for /d %%V in (%0) do  (set HERE=%%~dpV)
+set HERE=%~dp0
+echo %HERE%
 pause
 
 rem ********************************************************************************
@@ -329,43 +384,57 @@ echo %FILE_EXT%
 
 
 rem ファイルのフルパスからディレクトリとファイル名を分離する
+set BROWSER=C:\bin64\FirefoxPortable\App\Firefox64\firefox.exe
 set BROWSER=C:\bin64\GoogleChromePortable\App\Chrome-bin\chrome.exe
-rem %%i と ) の間にスペースを入れてはいけない。スペースも変数に格納されてしまう
+rem set BROWSER=C:\Program Files\Google\Chrome\Application\chrome.exe
+rem rem set BROWSER=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+rem rem Edge でもロードできるが、カッコが入ってるとダメで（^でエスケープしてもダメ）、ショートファイル名である必要がある。
+rem set BROWSER=C:\Progra~1\Microsoft\Edge\Application\msedge.exe
+
+rem ファイルのフルパスからディレクトリを取り出す。 %%i と ) の間にスペースを入れてはいけない。スペースも変数に格納されてしまう
 for /f "tokens=* usebackq" %%i in (`echo %BROWSER%`) do (set FILE_DIR=%%~dpi)
 rem パスの最後にある\マークを除去する例。（パスの最後に\マークがあると動作しないコマンドがある）
 if "%FILE_DIR:~-1%"=="\" (set FILE_DIR=%FILE_DIR:~0,-1%)
 rem if %FILE_DIR:~-1%==\ (set FILE_DIR=%FILE_DIR:~0,-1%)
 echo %FILE_DIR%
 
+rem ファイルのフルパスからファイル名を取り出す
 for /f "tokens=* usebackq" %%i in (`echo %BROWSER%`) do (set FILE_NM=%%~nxi)
 echo %FILE_NM%
 
 rem 1行で書くとこうなる
-rem && の前にスペースを入れてはいけない。スペースも変数に格納されてしまう
+rem ファイルのフルパスからディレクトリとファイル名を分離する && の前にスペースを入れてはいけない。スペースも変数に格納されてしまう
 for /f "tokens=* usebackq" %%i in (`echo %BROWSER%`) do (set FILE_DIR=%%~dpi&& set FILE_NM=%%~nxi)
 rem パスの最後にある\マークを除去する例。（パスの最後に\マークがあると動作しないコマンドがある）
 if "%FILE_DIR:~-1%"=="\" (set FILE_DIR=%FILE_DIR:~0,-1%)
+set PATH="%FILE_DIR%";%PATH% && echo %PATH%
 echo %FILE_DIR%
 echo %FILE_NM%
+rem FILE_NMを二重引用符で囲むと動作しない。
+start /d "%FILE_DIR%" /b %FILE_NM%
+rem	tasklist | %systemroot%\SysWOW64\find /i "%FILE_NM%">NUL
+rem	if errorlevel 1 (
+rem		start /d "%FILE_DIR%" /b %FILE_NM%
+rem	)
 pause
 
 
 
 rem 1行で書くとこうなる
-rem && の前にスペースを入れてはいけない。スペースも変数に格納されてしまう
+rem ファイルのフルパスからディレクトリとファイル名を分離する && の前にスペースを入れてはいけない。スペースも変数に格納されてしまう
 set INPUT_FILE=D:\GitHub\tools\tips.bas
-for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER=%%~dV&&  set DRIVE_AND_DIR=%%~dpV&&  set FULL_PATH=%%~dpnxV&&  set FILE_NAME=%%~nxV&& set FILE_EXT=%%~xV)
-for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER=%~dV&&  set DRIVE_AND_DIR=%~dpV&&  set FULL_PATH=%~dpnxV&&  set FILE_NAME=%~nxV&& set FILE_EXT=%~xV)
+for /f %%V in ("%INPUT_FILE%") do ( set DRIVE_LETTER=%%~dV&&  set DRIVE_AND_DIR=%%~dpV&&  set FULL_PATH=%%~dpnxV&&  set BASENAME=%%~nxV&& set FILE_EXT=%%~xV)
+for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER=%~dV&&  set DRIVE_AND_DIR=%~dpV&&  set FULL_PATH=%~dpnxV&&  set BASENAME=%~nxV&& set FILE_EXT=%~xV)
 echo ####################
 echo "%FULL_PATH%"
 echo "%DRIVE_LETTER%"
 echo "%DRIVE_AND_DIR%"
-echo "%FILE_NAME%"
+echo "%BASENAME%"
 echo "%FILE_EXT%"
 
 rem 変数名を二重引用符で囲めばいいかと思うがダメ。 二重引用符も && 直前のスペースも変数にセットされる。
 set INPUT_FILE=D:\GitHub\tools\tips.bas
-for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER="%%~dV"  &&  set DRIVE_AND_DIR="%%~dpV"  &&  set FULL_PATH="%%~dpnxV"  &&  set FILE_NAME="%%~dpnV"  && set FILE_EXT="%%~xV")
+for /f %%V in ("%INPUT_FILE%") do ( set DRIVE_LETTER="%%~dV"  &&  set DRIVE_AND_DIR="%%~dpV"  &&  set FULL_PATH="%%~dpnxV"  &&  set FILE_NAME="%%~dpnV"  && set FILE_EXT="%%~xV")
 for /f %V in ("%INPUT_FILE%") do ( set DRIVE_LETTER="%~dV"  &&  set DRIVE_AND_DIR="%~dpV"  &&  set FULL_PATH="%~dpnxV"  &&  set FILE_NAME="%~dpnV"  && set FILE_EXT="%~xV")
 echo ####################
 echo [%FULL_PATH%]
@@ -515,12 +584,12 @@ if /i [ABC] equ [abc] (echo 同じ) else (echo 違う)
 if  [ABC] equ [abc] (echo 同じ) else (echo 違う)
 
 rem
-EQU　　等しい 
-NEQ　　等しくない 
-LSS　　より小さい 
-LEQ　　以下 
-GTR　　より大きい 
-GEQ　　以上 
+EQU　　等しい
+NEQ　　等しくない
+LSS　　より小さい
+LEQ　　以下
+GTR　　より大きい
+GEQ　　以上
 
 rem ********************************************************************************
 
@@ -542,6 +611,8 @@ if not [1] == [0] if not [a] == [b] if /i [a] == [b] (
 )
 
 pause
+
+
 
 rem ********************************************************************************
 rem コマンドプロンプトからエクスプローラーで所定のディレクトリを開く
@@ -567,6 +638,21 @@ rem コマンドプロンプトからエクスプローラーで所定のディレクトリ・ファイルを選択し
 rem /root を /select の前に付けると、そのディレクトリを開いた状態になる。（ファイルを引数にするとそのファイルを開く）
 rem （/root を /select の後に付けると、上記の動作にならない）
 %WINDIR%\explorer.exe /root,/select,"C:\#Work\python_source"
+
+
+rem コマンドプロンプトからエクスプローラーで所定のディレクトリ・ファイルを選択した状態にする。
+set OBJECT=C:\Users\中村崇NAKAMURATAKASHIYT\Documents\GitHub\tools
+if exist "%OBJECT%\*" ( %WINDIR%\explorer.exe /root,/select,"%OBJECT%" ) else ( if exist "%OBJECT%" ( %WINDIR%\explorer.exe /select,"%OBJECT%" ) else ( echo "%OBJECT%" は存在しない。))
+
+rem --------------------------------------------------------------------------------
+rem コマンドプロンプトからエクスプローラーでUNCのディレクトリを開く
+rem explorer.exe に UNCパスを渡せば、cmd.exe から UNC が開ける
+%WINDIR%\explorer.exe /select,"\\192.168.0.1\data"
+rem /root を /select の前に付けると、そのディレクトリを開いた状態になる。（ファイルを引数にするとそのファイルを開く）
+rem （/root を /select の後に付けると、上記の動作にならない）
+%WINDIR%\explorer.exe /root,/select,"\\192.168.0.1\data"
+
+
 
 rem ********************************************************************************
 rem 一種のタイマー機能
@@ -664,3 +750,5 @@ if not "%~0"=="%~dp0.\%~nx0" (
 	start /min cmd /c,"%~dp0.\%~nx0" %*
 	exit
 )
+
+
