@@ -1,20 +1,31 @@
-*.str-
+#.ipynb_checkpoints
+#streams/
+#debug/
+#raw_data/
+#rawdata/
+
+
+.$*
 ~$*
 *.lnk
 *.pyc
-*.ldb
 __pycache__
 .~lock.*
+*.ldb
 $HISTORY
+.HISTORY
+AutoBackUp
+BackUp
 FP_Kakeibo\AutoBackUp
 FP_Kakeibo\BackUp
 *.tmp.drivedownload*
-AutoBackUp
-BackUp
 .svn
 *.un~
 *.swo
 *.swp
 *.swn
+*.str-
+*.bkp
+
 
 
